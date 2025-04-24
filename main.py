@@ -4,7 +4,7 @@ import chardet
 import subprocess
 from docx import Document
 
-def convert_txt_files(source_dir):
+def convert_txt_files(source_dir, output_dir):
     """遍历并转换指定目录中的所有.txt文件为UTF-8编码"""
     for filename in os.listdir(source_dir):
         if filename.endswith('.txt'):
@@ -19,24 +19,23 @@ def convert_txt_files(source_dir):
                 # 读取文件内容
                 with open(file_path, 'r', encoding=encoding, errors='ignore') as f:
                     content = f.read().replace('\r\n', '\n').replace('\r', '\n')
+                    base_name = os.path.splitext(filename)[0]
 
-                # 写入临时文件再替换原文件
-                temp_path = file_path + '.tmp'
-                with open(temp_path, 'w', encoding='utf-8', newline='\n') as f:
+                target_path = os.path.join(output_dir, f"{base_name}_txt.txt")
+                with open(target_path, 'w', encoding='utf-8', newline='\n') as f:
                     f.write(content)
-                os.replace(temp_path, file_path)
                 print(f"完成转换: {filename}")
 
             except Exception as e:
                 print(f"转换失败: {filename} - {str(e)}")
 
-def convert_doc_files(source_dir):
+def convert_doc_files(source_dir, output_dir):
     """使用antiword将.doc文件转换为UTF-8编码的.txt文件"""
     for filename in os.listdir(source_dir):
         if filename.endswith('.doc'):
             file_path = os.path.join(source_dir, filename)
             base_name = os.path.splitext(filename)[0]
-            target_path = os.path.join(source_dir, f"{base_name}.txt")
+            target_path = os.path.join(output_dir, f"{base_name}_doc.txt")
 
             try:
                 # 运行antiword命令
@@ -59,13 +58,13 @@ def convert_doc_files(source_dir):
             except Exception as e:
                 print(f"转换失败: {filename} - {str(e)}")
 
-def convert_docx_files(source_dir):
+def convert_docx_files(source_dir, output_dir):
     """使用python-docx将.docx文件转换为UTF-8编码的.txt文件"""
     for filename in os.listdir(source_dir):
         if filename.endswith('.docx'):
             file_path = os.path.join(source_dir, filename)
             base_name = os.path.splitext(filename)[0]
-            target_path = os.path.join(source_dir, f"{base_name}.txt")
+            target_path = os.path.join(output_dir, f"{base_name}_docx.txt")
 
             try:
                 # 读取Word文档内容
@@ -90,19 +89,17 @@ def main():
         sys.exit(1)
 
     # 处理.txt文件
-    txt_dir = "/home/coder/project/totext/1/txt"
-    if not os.path.exists(txt_dir):
-        print(f"错误：目录 {txt_dir} 不存在")
+    input_dir = "/home/coder/project/totext/1/input"
+    output_dir = "/home/coder/project/totext/1/output"
+    if not os.path.exists(input_dir):
+        print(f"错误：输入目录 {input_dir} 不存在")
         return
-    convert_txt_files(txt_dir)
+    os.makedirs(output_dir, exist_ok=True)
+    convert_txt_files(input_dir, output_dir)
 
     # 处理.doc和.docx文件
-    doc_dir = "/home/coder/project/totext/1/doc"
-    if not os.path.exists(doc_dir):
-        print(f"错误：目录 {doc_dir} 不存在")
-        return
-    convert_doc_files(doc_dir)
-    convert_docx_files(doc_dir)
+    convert_doc_files(input_dir, output_dir)
+    convert_docx_files(input_dir, output_dir)
 
 if __name__ == "__main__":
     main()
